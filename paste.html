@@ -1,0 +1,595 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <title>terrorbin</title>
+
+  <style>
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      min-height: 100vh;
+      background: #050505;
+      color: white;
+      font-family: Arial, sans-serif;
+      overflow: hidden;
+    }
+
+    /* =========================
+       PAGE LOAD TRANSITION
+       Preserves the existing transforms
+    ========================= */
+
+    .top-nav,
+    .side-panel,
+    .paste-container {
+      opacity: 0;
+      animation-duration: 0.7s;
+      animation-fill-mode: forwards;
+      animation-timing-function: cubic-bezier(0.22, 1, 0.36, 1);
+    }
+
+    .top-nav {
+      animation-name: navReveal;
+      animation-delay: 0.05s;
+    }
+
+    .side-panel {
+      animation-name: panelReveal;
+      animation-delay: 0.15s;
+    }
+
+    .paste-container {
+      animation-name: pasteReveal;
+      animation-delay: 0.25s;
+    }
+
+    @keyframes navReveal {
+      from {
+        opacity: 0;
+        transform: translate(-50%, -18px);
+      }
+      to {
+        opacity: 1;
+        transform: translate(-50%, 0);
+      }
+    }
+
+    @keyframes panelReveal {
+      from {
+        opacity: 0;
+        transform: translate(-18px, -50%);
+      }
+      to {
+        opacity: 1;
+        transform: translate(0, -50%);
+      }
+    }
+
+    @keyframes pasteReveal {
+      from {
+        opacity: 0;
+        transform: translate(-50%, calc(-50% + 18px));
+      }
+      to {
+        opacity: 1;
+        transform: translate(-50%, -50%);
+      }
+    }
+
+    /* =========================
+       TOP NAVIGATION
+    ========================= */
+
+    .top-nav {
+      position: fixed;
+      top: 15px;
+      left: 50%;
+      transform: translateX(-50%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 7px;
+      z-index: 10000;
+    }
+
+    .nav-button {
+      position: relative;
+      min-width: 78px;
+      height: 38px;
+      padding: 0 17px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 10px;
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      background: rgba(10, 10, 10, 0.5);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+
+      box-shadow:
+        0 12px 30px rgba(0, 0, 0, 0.35),
+        inset 0 0 25px rgba(255, 255, 255, 0.025);
+
+      color: #aaa;
+      text-decoration: none;
+      font-size: 12px;
+      font-weight: 500;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      overflow: hidden;
+
+      transition:
+        color 0.35s ease,
+        border-color 0.35s ease,
+        box-shadow 0.5s ease,
+        transform 0.7s ease;
+    }
+
+    .nav-button:hover {
+      color: white;
+      border-color: rgba(255, 255, 255, 0.35);
+
+      box-shadow:
+        0 20px 45px rgba(0, 0, 0, 0.55),
+        0 0 25px rgba(255, 255, 255, 0.08),
+        inset 0 0 30px rgba(255, 255, 255, 0.045);
+
+      transform: translateY(-4px) scale(1.03);
+    }
+
+    .nav-button::after {
+      content: "";
+      position: absolute;
+      top: -100%;
+      left: -80%;
+      width: 55%;
+      height: 300%;
+
+      background:
+        linear-gradient(
+          90deg,
+          transparent,
+          rgba(255, 255, 255, 0.055),
+          transparent
+        );
+
+      transform: rotate(20deg);
+      pointer-events: none;
+      transition: left 0.8s ease;
+    }
+
+    .nav-button:hover::after {
+      left: 125%;
+    }
+
+    /* =========================
+       SIDE PANEL
+    ========================= */
+
+    .side-panel {
+      position: fixed;
+      top: 50%;
+      left: 20px;
+      transform: translateY(-50%);
+      width: 230px;
+      padding: 20px;
+      border-radius: 12px;
+
+      border: 1px solid rgba(255, 255, 255, 0.12);
+
+      background: rgba(10, 10, 10, 0.5);
+
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+
+      box-shadow:
+        0 12px 30px rgba(0, 0, 0, 0.35),
+        inset 0 0 25px rgba(255, 255, 255, 0.025);
+
+      z-index: 9999;
+    }
+
+    .side-panel label {
+      display: block;
+      margin-bottom: 8px;
+      color: #aaa;
+      font-size: 12px;
+      font-weight: 500;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+    }
+
+    /* =========================
+       TITLE INPUT
+    ========================= */
+
+    .title-input {
+      width: 100%;
+      height: 40px;
+      padding: 0 12px;
+      border-radius: 8px;
+
+      border: 1px solid rgba(255, 255, 255, 0.12);
+
+      outline: none;
+      background: rgba(0, 0, 0, 0.35);
+      color: white;
+      font-size: 13px;
+
+      transition:
+        border-color 1.2s ease,
+        box-shadow 1.2s ease;
+    }
+
+    .title-input:focus {
+      border-color: rgba(255, 255, 255, 0.35);
+      box-shadow: 0 0 15px rgba(255, 255, 255, 0.06);
+    }
+
+    .title-input::placeholder {
+      color: #555;
+    }
+
+    /* =========================
+       UPLOAD BUTTON
+    ========================= */
+
+    .upload-button {
+      width: 100%;
+      height: 40px;
+      margin-top: 12px;
+
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      border-radius: 8px;
+
+      background: rgba(255, 255, 255, 0.04);
+
+      color: #aaa;
+      font-size: 12px;
+      font-weight: 500;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      cursor: pointer;
+
+      transition:
+        color 0.35s ease,
+        border-color 0.35s ease,
+        box-shadow 0.5s ease,
+        transform 0.5s ease,
+        background 0.35s ease;
+    }
+
+    .upload-button:hover:not(:disabled) {
+      color: white;
+      border-color: rgba(255, 255, 255, 0.35);
+
+      background: rgba(255, 255, 255, 0.07);
+
+      box-shadow:
+        0 12px 25px rgba(0, 0, 0, 0.4),
+        0 0 20px rgba(255, 255, 255, 0.05);
+
+      transform: translateY(-3px);
+    }
+
+    .upload-button:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    /* =========================
+       CENTER PASTE AREA
+    ========================= */
+
+    .paste-container {
+      position: fixed;
+
+      top: 53%;
+      left: 56%;
+
+      transform: translate(-50%, -50%);
+
+      width: min(1250px, calc(100% - 270px));
+      height: min(780px, calc(100vh - 80px));
+
+      z-index: 1;
+    }
+
+    .paste-box {
+      width: 100%;
+      height: 100%;
+
+      resize: none;
+      padding: 20px;
+      border-radius: 12px;
+
+      border: 1px solid rgba(255, 255, 255, 0.12);
+
+      outline: none;
+
+      background: rgba(10, 10, 10, 0.5);
+
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+
+      box-shadow:
+        0 12px 30px rgba(0, 0, 0, 0.35),
+        inset 0 0 25px rgba(255, 255, 255, 0.025);
+
+      color: white;
+      font-family: Arial, sans-serif;
+      font-size: 14px;
+      line-height: 1.6;
+
+      scrollbar-width: thin;
+
+      scrollbar-color:
+        rgba(255, 255, 255, 0.25)
+        rgba(0, 0, 0, 0.25);
+
+      transition:
+        border-color 1.2s ease,
+        box-shadow 1.2s ease;
+    }
+
+    .paste-box:focus {
+      border-color: rgba(255, 255, 255, 0.3);
+      box-shadow:
+        0 12px 30px rgba(0, 0, 0, 0.35),
+        0 0 18px rgba(255, 255, 255, 0.08),
+        inset 0 0 25px rgba(255, 255, 255, 0.025);
+    }
+
+    .paste-box::placeholder {
+      color: #555;
+    }
+
+    /* =========================
+       CUSTOM SCROLLBAR
+    ========================= */
+
+    .paste-box::-webkit-scrollbar {
+      width: 10px;
+    }
+
+    .paste-box::-webkit-scrollbar-track {
+      background: rgba(0, 0, 0, 0.25);
+      border-radius: 10px;
+      margin: 8px;
+    }
+
+    .paste-box::-webkit-scrollbar-thumb {
+      background: rgba(255, 255, 255, 0.18);
+      border: 2px solid transparent;
+      background-clip: padding-box;
+      border-radius: 10px;
+    }
+
+    .paste-box::-webkit-scrollbar-thumb:hover {
+      background: rgba(255, 255, 255, 0.35);
+      border: 2px solid transparent;
+      background-clip: padding-box;
+    }
+
+    /* =========================
+       MOBILE
+    ========================= */
+
+    @media (max-width: 600px) {
+
+      body {
+        overflow: auto;
+      }
+
+      .top-nav {
+        top: 10px;
+        gap: 5px;
+      }
+
+      .nav-button {
+        min-width: 68px;
+        height: 35px;
+        padding: 0 12px;
+        font-size: 10px;
+      }
+
+      .side-panel {
+        top: 65px;
+        left: 10px;
+        transform: none;
+        width: calc(100% - 20px);
+      }
+
+      .paste-container {
+        top: 210px;
+        left: 10px;
+        transform: none;
+
+        width: calc(100% - 20px);
+        height: calc(100vh - 230px);
+      }
+
+    }
+
+  </style>
+</head>
+
+<body>
+
+  <!-- TOP NAVIGATION -->
+
+  <nav class="top-nav">
+
+    <a href="index.html" class="nav-button">
+      Bin
+    </a>
+
+    <a
+      href="/"
+      class="nav-button"
+      onclick="window.location.href='/'; return false;"
+    >
+      Paste
+    </a>
+
+    <a href="HOR.html" class="nav-button">
+      HOR
+    </a>
+
+    <a href="profiles.html" class="nav-button">
+      Profiles
+    </a>
+
+  </nav>
+
+
+  <!-- SIDE UPLOAD PANEL -->
+
+  <aside class="side-panel">
+
+    <label for="title">
+      Title
+    </label>
+
+    <input
+      type="text"
+      id="title"
+      class="title-input"
+      placeholder="Enter title..."
+      maxlength="20"
+    >
+
+    <button
+      class="upload-button"
+      id="upload-button"
+      type="button"
+    >
+      Upload
+    </button>
+
+  </aside>
+
+
+  <!-- CENTER PASTE BOX -->
+
+  <main class="paste-container">
+
+    <textarea
+      class="paste-box"
+      id="paste-box"
+      placeholder="Paste anything here..."
+      spellcheck="false"
+    ></textarea>
+
+  </main>
+
+
+  <script>
+
+    const uploadButton =
+      document.querySelector("#upload-button");
+
+    const titleInput =
+      document.querySelector("#title");
+
+    const pasteBox =
+      document.querySelector("#paste-box");
+
+
+    uploadButton.addEventListener("click", async () => {
+
+      const title =
+        titleInput.value.trim();
+
+      const content =
+        pasteBox.value;
+
+
+      // Title is required
+
+      if (!title) {
+        alert("Please enter a title.");
+        return;
+      }
+
+
+      // Maximum 20 characters
+
+      if (title.length > 20) {
+        alert("The title cannot be longer than 20 characters.");
+        return;
+      }
+
+
+      // Minimum 100 characters
+
+      if (content.trim().length < 100) {
+        alert("Your paste must contain at least 100 characters.");
+        return;
+      }
+
+
+      uploadButton.textContent =
+        "Uploading...";
+
+      uploadButton.disabled =
+        true;
+
+
+      try {
+
+        const response =
+          await fetch(
+            "/api/pastes",
+            {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json"
+              },
+              body: JSON.stringify({ title, content })
+            }
+          );
+
+
+        if (!response.ok) {
+          throw new Error("Upload failed");
+        }
+
+
+        titleInput.value = "";
+        pasteBox.value = "";
+
+        window.location.href = "index.html";
+
+
+      } catch (error) {
+
+        console.error(error);
+
+        alert("There was an error uploading your paste.");
+
+
+      } finally {
+
+        uploadButton.textContent =
+          "Upload";
+
+        uploadButton.disabled =
+          false;
+
+      }
+
+    });
+
+  </script>
+
+</body>
+</html>

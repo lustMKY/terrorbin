@@ -1,0 +1,590 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <title>terrorbin</title>
+
+  <style>
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      min-height: 100vh;
+
+      background: #050505;
+
+      color: white;
+
+      font-family: Arial, sans-serif;
+
+      overflow-y: auto;
+    }
+
+    /* =========================
+       TOP NAVIGATION
+    ========================= */
+
+    .top-nav {
+      position: fixed;
+
+      top: 15px;
+
+      left: 50%;
+
+      transform: translateX(-50%);
+
+      display: flex;
+
+      align-items: center;
+      justify-content: center;
+
+      gap: 7px;
+
+      z-index: 10000;
+    }
+
+    /* =========================
+       NAV BUTTON
+    ========================= */
+
+    .nav-button {
+      position: relative;
+
+      min-width: 78px;
+
+      height: 38px;
+
+      padding: 0 17px;
+
+      display: flex;
+
+      align-items: center;
+      justify-content: center;
+
+      border-radius: 10px;
+
+      border:
+        1px solid rgba(255, 255, 255, 0.12);
+
+      background:
+        rgba(10, 10, 10, 0.5);
+
+      backdrop-filter: blur(10px);
+
+      -webkit-backdrop-filter: blur(10px);
+
+      box-shadow:
+        0 12px 30px rgba(0, 0, 0, 0.35),
+        inset 0 0 25px rgba(255, 255, 255, 0.025);
+
+      color: #aaa;
+
+      text-decoration: none;
+
+      font-size: 12px;
+
+      font-weight: 500;
+
+      letter-spacing: 1.5px;
+
+      text-transform: uppercase;
+
+      overflow: hidden;
+
+      transition:
+        color 0.35s ease,
+        border-color 0.35s ease,
+        box-shadow 0.5s ease,
+        transform 0.7s ease;
+    }
+
+    /* =========================
+       HOVER
+    ========================= */
+
+    .nav-button:hover {
+      color: white;
+
+      border-color:
+        rgba(255, 255, 255, 0.35);
+
+      box-shadow:
+        0 20px 45px rgba(0, 0, 0, 0.55),
+        0 0 25px rgba(255, 255, 255, 0.08),
+        inset 0 0 30px rgba(255, 255, 255, 0.045);
+
+      transform:
+        translateY(-4px)
+        scale(1.03);
+
+      text-shadow:
+        0 0 12px rgba(255, 255, 255, 0.18);
+    }
+
+    /* =========================
+       SHINE EFFECT
+    ========================= */
+
+    .nav-button::after {
+      content: "";
+
+      position: absolute;
+
+      top: -100%;
+
+      left: -80%;
+
+      width: 55%;
+
+      height: 300%;
+
+      background:
+        linear-gradient(
+          90deg,
+          transparent,
+          rgba(255,255,255,0.055),
+          transparent
+        );
+
+      transform: rotate(20deg);
+
+      pointer-events: none;
+
+      transition:
+        left 0.8s ease;
+    }
+
+    .nav-button:hover::after {
+      left: 125%;
+    }
+
+    /* =========================
+       GLOW
+    ========================= */
+
+    .nav-button::before {
+      content: "";
+
+      position: absolute;
+
+      width: 120px;
+
+      height: 120px;
+
+      top: -85px;
+
+      left: 50%;
+
+      transform:
+        translateX(-50%);
+
+      border-radius: 50%;
+
+      background: white;
+
+      opacity: 0.025;
+
+      filter: blur(8px);
+
+      transition:
+        opacity 0.35s ease,
+        transform 0.5s ease;
+    }
+
+    .nav-button:hover::before {
+      opacity: 0.08;
+
+      transform:
+        translateX(-50%)
+        scale(1.2);
+    }
+
+    /* =========================
+       MOBILE
+    ========================= */
+
+    @media (max-width: 600px) {
+
+      .top-nav {
+        top: 10px;
+
+        gap: 5px;
+      }
+
+      .nav-button {
+        min-width: 68px;
+
+        height: 35px;
+
+        padding: 0 12px;
+
+        font-size: 10px;
+      }
+
+    }
+
+    /* =========================
+       BIN LIST
+    ========================= */
+
+    .bin-container {
+      max-width: 640px;
+
+      margin: 0 auto;
+
+      padding: 100px 20px 60px;
+    }
+
+    .bin-heading {
+      font-size: 13px;
+
+      font-weight: 600;
+
+      letter-spacing: 3px;
+
+      text-transform: uppercase;
+
+      color: #666;
+
+      margin-bottom: 18px;
+    }
+
+    .paste-list {
+      display: flex;
+
+      flex-direction: column;
+
+      gap: 10px;
+    }
+
+    .paste-item {
+      display: flex;
+
+      align-items: center;
+      justify-content: space-between;
+
+      padding: 16px 18px;
+
+      border-radius: 10px;
+
+      border: 1px solid rgba(255, 255, 255, 0.12);
+
+      background: rgba(10, 10, 10, 0.5);
+
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+
+      cursor: pointer;
+
+      transition:
+        border-color 0.3s ease,
+        transform 0.3s ease;
+    }
+
+    .paste-item:hover {
+      border-color: rgba(255, 255, 255, 0.35);
+
+      transform: translateY(-2px);
+    }
+
+    .paste-title {
+      font-size: 14px;
+
+      font-weight: 600;
+
+      letter-spacing: 0.5px;
+    }
+
+    .paste-date {
+      font-size: 11px;
+
+      color: #777;
+
+      letter-spacing: 0.5px;
+    }
+
+    .empty-state {
+      color: #666;
+
+      font-size: 13px;
+
+      letter-spacing: 0.5px;
+    }
+
+    /* =========================
+       PASTE VIEWER
+    ========================= */
+
+    .viewer-overlay {
+      display: none;
+
+      position: fixed;
+
+      inset: 0;
+
+      background: rgba(0, 0, 0, 0.75);
+
+      backdrop-filter: blur(4px);
+
+      z-index: 20000;
+
+      align-items: center;
+      justify-content: center;
+
+      padding: 20px;
+    }
+
+    .viewer-overlay.open {
+      display: flex;
+    }
+
+    .viewer-panel {
+      width: 100%;
+
+      max-width: 640px;
+
+      max-height: 80vh;
+
+      display: flex;
+
+      flex-direction: column;
+
+      border-radius: 12px;
+
+      border: 1px solid rgba(255, 255, 255, 0.15);
+
+      background: #0a0a0a;
+
+      overflow: hidden;
+    }
+
+    .viewer-header {
+      display: flex;
+
+      align-items: center;
+      justify-content: space-between;
+
+      padding: 16px 18px;
+
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .viewer-title {
+      font-size: 14px;
+
+      font-weight: 600;
+
+      letter-spacing: 0.5px;
+    }
+
+    .viewer-close {
+      background: none;
+
+      border: none;
+
+      color: #999;
+
+      font-size: 18px;
+
+      cursor: pointer;
+
+      line-height: 1;
+    }
+
+    .viewer-close:hover {
+      color: white;
+    }
+
+    .viewer-content {
+      margin: 0;
+
+      padding: 18px;
+
+      overflow-y: auto;
+
+      white-space: pre-wrap;
+
+      word-break: break-word;
+
+      font-family: "Courier New", monospace;
+
+      font-size: 13px;
+
+      color: #ddd;
+    }
+
+  </style>
+</head>
+
+<body>
+
+  <!-- =========================
+       TOP NAVIGATION
+  ========================= -->
+
+  <nav class="top-nav">
+
+
+    <!-- BIN -->
+
+    <a
+      href="/"
+      class="nav-button"
+      onclick="window.location.href='/'; return false;"
+    >
+      Bin
+    </a>
+
+    <!-- CREATE PASTE -->
+
+    <a
+      href="paste.html"
+      class="nav-button"
+    >
+      PASTE
+    </a>
+
+    <!-- HOR -->
+
+    <a
+      href="HOR.html"
+      class="nav-button"
+    >
+      HOR
+    </a>
+
+
+    <!-- PROFILES -->
+
+    <a
+      href="profiles.html"
+      class="nav-button"
+    >
+      Profiles
+    </a>
+
+  </nav>
+
+  <!-- =========================
+       BIN LIST
+  ========================= -->
+
+  <main class="bin-container">
+
+    <div class="bin-heading">Recent pastes</div>
+
+    <div class="paste-list" id="paste-list">
+      <div class="empty-state">Loading...</div>
+    </div>
+
+  </main>
+
+  <!-- =========================
+       PASTE VIEWER
+  ========================= -->
+
+  <div class="viewer-overlay" id="viewer-overlay">
+    <div class="viewer-panel">
+      <div class="viewer-header">
+        <span class="viewer-title" id="viewer-title"></span>
+        <button class="viewer-close" id="viewer-close" type="button">&times;</button>
+      </div>
+      <pre class="viewer-content" id="viewer-content"></pre>
+    </div>
+  </div>
+
+  <script>
+
+    const pasteList = document.querySelector("#paste-list");
+    const viewerOverlay = document.querySelector("#viewer-overlay");
+    const viewerTitle = document.querySelector("#viewer-title");
+    const viewerContent = document.querySelector("#viewer-content");
+    const viewerClose = document.querySelector("#viewer-close");
+
+    function formatDate(isoString) {
+      const date = new Date(isoString);
+      return date.toLocaleString();
+    }
+
+    async function loadPastes() {
+      try {
+        const response = await fetch("/api/pastes");
+
+        if (!response.ok) {
+          throw new Error("Failed to load pastes");
+        }
+
+        const pastes = await response.json();
+
+        if (pastes.length === 0) {
+          pasteList.innerHTML = '<div class="empty-state">No pastes yet.</div>';
+          return;
+        }
+
+        pasteList.innerHTML = "";
+
+        pastes.forEach((paste) => {
+          const item = document.createElement("div");
+          item.className = "paste-item";
+
+          item.innerHTML = `
+            <span class="paste-title"></span>
+            <span class="paste-date"></span>
+          `;
+
+          item.querySelector(".paste-title").textContent = paste.title;
+          item.querySelector(".paste-date").textContent = formatDate(paste.createdAt);
+
+          item.addEventListener("click", () => openPaste(paste.id));
+
+          pasteList.appendChild(item);
+        });
+
+      } catch (error) {
+        console.error(error);
+        pasteList.innerHTML = '<div class="empty-state">Could not load pastes.</div>';
+      }
+    }
+
+    async function openPaste(id) {
+      try {
+        const response = await fetch(`/api/pastes?id=${id}`);
+
+        if (!response.ok) {
+          throw new Error("Failed to load paste");
+        }
+
+        const paste = await response.json();
+
+        viewerTitle.textContent = paste.title;
+        viewerContent.textContent = paste.content;
+        viewerOverlay.classList.add("open");
+
+      } catch (error) {
+        console.error(error);
+        alert("Could not load this paste.");
+      }
+    }
+
+    viewerClose.addEventListener("click", () => {
+      viewerOverlay.classList.remove("open");
+    });
+
+    viewerOverlay.addEventListener("click", (event) => {
+      if (event.target === viewerOverlay) {
+        viewerOverlay.classList.remove("open");
+      }
+    });
+
+    loadPastes();
+
+  </script>
+
+</body>
+</html>
