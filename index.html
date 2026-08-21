@@ -585,7 +585,10 @@
           item.querySelector(".paste-title").textContent = paste.title;
           item.querySelector(".paste-date").textContent = formatDate(paste.createdAt);
 
-          item.addEventListener("click", () => openPaste(paste.id));
+          item.addEventListener("click", () => {
+            history.pushState({ pasteId: paste.id }, "", `/pastes/${encodeURIComponent(paste.id)}`);
+            openPaste(paste.id);
+          });
 
           pasteList.appendChild(item);
         });
@@ -616,17 +619,36 @@
       }
     }
 
-    viewerClose.addEventListener("click", () => {
+    function closePaste() {
       viewerOverlay.classList.remove("open");
-    });
+      if (window.location.pathname.startsWith("/pastes/")) {
+        history.pushState({}, "", "/");
+      }
+    }
+
+    viewerClose.addEventListener("click", closePaste);
 
     viewerOverlay.addEventListener("click", (event) => {
       if (event.target === viewerOverlay) {
+        closePaste();
+      }
+    });
+
+    window.addEventListener("popstate", () => {
+      const match = window.location.pathname.match(/^\/pastes\/([^/]+)\/?$/);
+      if (match) {
+        openPaste(decodeURIComponent(match[1]));
+      } else {
         viewerOverlay.classList.remove("open");
       }
     });
 
     loadPastes();
+
+    const pasteMatch = window.location.pathname.match(/^\/pastes\/([^/]+)\/?$/);
+    if (pasteMatch) {
+      openPaste(decodeURIComponent(pasteMatch[1]));
+    }
 
   </script>
 
